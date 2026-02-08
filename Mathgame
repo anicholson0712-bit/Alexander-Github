@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Xander's Math Game</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    text-align: center;
+    margin: 20px;
+    color: red;
+
+    /* Mathy background */
+    background-color: #f0f8ff;
+    background-image:
+        linear-gradient(#d0e6ff 1px, transparent 1px),
+        linear-gradient(90deg, #d0e6ff 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px;
+}
+
+h1 { font-size: 2em; }
+
+#gameArea, #quitMessage, #instructionBox {
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 90%;
+}
+
+#gameArea {
+    background-color: rgba(169,169,169,0.8);
+    display: inline-block;
+}
+
+button {
+    margin: 5px;
+    padding: 15px 25px;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 5px;
+    background-color: #ffcc00;
+    color: black;
+    font-weight: bold;
+    border: 2px solid #000; /* Outline */
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #ffaa00;
+}
+
+button:active {
+    transform: scale(0.95); /* pop effect */
+}
+
+#quitMessage {
+    color: red;
+    font-size: 1.5em;
+    display: none;
+}
+
+#instructionBox {
+    color: black;
+    background-color: rgba(255,255,255,0.95);
+    font-size: 1.2em;
+    padding: 20px;
+    border-radius: 15px;
+    width: 350px;
+    height: 400px;
+    margin: 20px auto;
+    overflow-y: auto;
+    display: none;
+}
+
+#instructionBox h2 {
+    margin-top: 0;
+    color: #003366;
+}
+
+#scoreBoard {
+    font-size: 1.5em;
+    margin-top: 10px;
+    display: none;
+}
+
+#questionBox {
+    font-size: 1.5em;
+    margin: 20px 0;
+    display: none;
+}
+
+/* Numpad styles */
+#numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(4, 60px);
+    gap: 10px;
+    justify-content: center;
+    margin: 0 auto 20px;
+    display: none;
+}
+
+#numpad button {
+    width: 80px;
+    height: 60px;
+    font-size: 1.5em;
+    border: 2px solid #000; /* Outline */
+    background-color: #fff8b3;
+    border-radius: 10px;
+    transition: transform 0.1s, background-color 0.1s;
+}
+
+#numpad button:hover {
+    background-color: #ffe066;
+}
+
+#numpad button:active {
+    transform: scale(0.9);
+    background-color: #ffd633;
+}
+
+#endGameArea {
+    margin-bottom: 20px;
+    display: none;
+}
+
+/* ======= RESPONSIVE STUFF ======= */
+@media (max-width: 500px) {
+    button {
+        padding: 12px 20px;
+        font-size: 1em;
+    }
+
+    #numpad {
+        grid-template-columns: repeat(3, 60px);
+        grid-template-rows: repeat(4, 50px);
+        gap: 8px;
+    }
+
+    #numpad button {
+        width: 60px;
+        height: 50px;
+        font-size: 1.2em;
+    }
+
+    #instructionBox {
+        width: 90%;
+        height: 350px;
+        font-size: 1em;
+    }
+
+    #scoreBoard, #questionBox {
+        font-size: 1.2em;
+    }
+}
+</style>
+</head>
+<body>
+<h1>Math Game!</h1>
+
+<!-- Main Menu -->
+<div id="gameArea">
+    <p>Choose your mode:</p>
+    <button onclick="startGame(10)">10 Questions</button>
+    <button onclick="startGame(20)">20 Questions</button>
+    <button onclick="startGame(30)">30 Questions</button>
+    <button onclick="startGame(40)">40 Questions</button>
+    <br>
+    <button onclick="showInstructions()">Instructions</button>
+    <button onclick="quitGame()">Quit Game</button>
+</div>
+
+<!-- End Game Button -->
+<div id="endGameArea">
+    <button onclick="endGameEarly()">End Game</button>
+</div>
+
+<!-- Game Quit Screen -->
+<div id="quitMessage">
+    Game Quit! 😢<br>
+    <button id="rejoinButton" onclick="rejoinGame()">Rejoin Game</button>
+    <button id="closeTabButton" onclick="closeTab()">Close Tab</button>
+</div>
+
+<!-- Instructions -->
+<div id="instructionBox">
+    <h2>How to Play📗</h2>
+    <p>Answer the maths questions using the on-screen numpad</p>
+    <p>You can choose 10, 20, 30, or 40 questions.</p>
+    <p>Good luck and have fun😀!</p>
+    <h2> Other Info📗</h2>
+    <p>The "Close Tab" button only works on some browsers.</p>
+    <button id="closeInstructionsButton" onclick="closeInstructions()">Exit Instructions</button>
+</div>
+<!-- Score and Question -->
+<div id="scoreBoard">
+    Score: <span id="score">0</span>
+</div>
+<div id="questionBox">
+    <span id="questionText"></span>
+</div>
+
+<!-- Numpad -->
+<div id="numpad">
+    <button onclick="enterNumber('1')">1</button>
+    <button onclick="enterNumber('2')">2</button>
+    <button onclick="enterNumber('3')">3</button>
+    <button onclick="enterNumber('4')">4</button>
+    <button onclick="enterNumber('5')">5</button>
+    <button onclick="enterNumber('6')">6</button>
+    <button onclick="enterNumber('7')">7</button>
+    <button onclick="enterNumber('8')">8</button>
+    <button onclick="enterNumber('9')">9</button>
+    <button onclick="clearAnswer()">C</button>
+    <button onclick="enterNumber('0')">0</button>
+    <button onclick="submitAnswer()">OK</button>
+</div>
+
+<script>
+let currentScore = 0;
+let currentQuestion = 0;
+let totalQuestions = 0;
+let num1 = 0, num2 = 0, operation = '';
+let correctAnswer = 0;
+let userAnswer = '';
+
+function getRandomNumber(max) {
+    return Math.floor(Math.random() * max) + 1;
+}
+
+function generateQuestion() {
+    num1 = getRandomNumber(10);
+    num2 = getRandomNumber(10);
+    const operations = ['+', '-', '*'];
+    operation = operations[Math.floor(Math.random() * operations.length)];
+
+    if(operation === '+') correctAnswer = num1 + num2;
+    if(operation === '-') correctAnswer = num1 - num2;
+    if(operation === '*') correctAnswer = num1 * num2;
+
+    userAnswer = '';
+    document.getElementById('questionText').textContent = `Q${currentQuestion+1}: ${num1} ${operation} ${num2} = ?`;
+}
+
+function startGame(questions) {
+    totalQuestions = questions;
+    currentScore = 0;
+    currentQuestion = 0;
+
+    document.getElementById('gameArea').style.display = 'none';
+    document.getElementById('quitMessage').style.display = 'none';
+    document.getElementById('instructionBox').style.display = 'none';
+
+    document.getElementById('scoreBoard').style.display = 'block';
+    document.getElementById('questionBox').style.display = 'block';
+    document.getElementById('numpad').style.display = 'grid';
+    document.getElementById('endGameArea').style.display = 'block';
+
+    document.getElementById('score').textContent = currentScore;
+
+    generateQuestion();
+}
+
+function enterNumber(num) {
+    userAnswer += num;
+    document.getElementById('questionText').textContent = `Q${currentQuestion+1}: ${num1} ${operation} ${num2} = ${userAnswer}`;
+}
+
+function clearAnswer() {
+    userAnswer = '';
+    document.getElementById('questionText').textContent = `Q${currentQuestion+1}: ${num1} ${operation} ${num2} = ?`;
+}
+
+function submitAnswer() {
+    if(parseInt(userAnswer) === correctAnswer) currentScore++;
+    currentQuestion++;
+    document.getElementById('score').textContent = currentScore;
+    if(currentQuestion < totalQuestions) generateQuestion();
+    else {
+        alert(`Game Over! You scored ${currentScore} out of ${totalQuestions} 🏆`);
+        endGame();
+    }
+}
+
+function endGameEarly() {
+    alert(`Game Ended! You scored ${currentScore} out of ${currentQuestion} 🏆`);
+    endGame();
+}
+
+function endGame() {
+    document.getElementById('gameArea').style.display = 'block';
+    document.getElementById('scoreBoard').style.display = 'none';
+    document.getElementById('questionBox').style.display = 'none';
+    document.getElementById('numpad').style.display = 'none';
+    document.getElementById('endGameArea').style.display = 'none';
+}
+
+function quitGame() {
+    endGame();
+    document.getElementById("gameArea").style.display = "none";
+    document.getElementById("quitMessage").style.display = "block";
+    document.getElementById("rejoinButton").style.display = "inline-block";
+    document.getElementById("closeTabButton").style.display = "inline-block";
+}
+
+function rejoinGame() {
+    document.getElementById("quitMessage").style.display = "none";
+    document.getElementById("rejoinButton").style.display = "none";
+    document.getElementById("closeTabButton").style.display = "none";
+    document.getElementById("gameArea").style.display = "block";
+}
+
+function closeTab() {
+    if(confirm("Do you want to close this tab?")) {
+        window.close();
+        alert("Your browser may block closing the tab.");
+    }
+}
+
+function showInstructions() {
+    document.getElementById("instructionBox").style.display = "block";
+    document.getElementById("gameArea").style.display = "none";
+}
+
+function closeInstructions() {
+    document.getElementById("instructionBox").style.display = "none";
+    document.getElementById("gameArea").style.display = "block";
+}
+</script>
+</body>
+</html>
